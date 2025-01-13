@@ -1,6 +1,6 @@
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+		return new Response('Please view https://dash.cloudflare.com/ Workers & Pages => opendota-auto-parser => logs.');
 	},
 	async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext,) {
 		console.log('Scheduled event triggered');
