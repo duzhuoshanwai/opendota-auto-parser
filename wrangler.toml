@@ -17,7 +17,7 @@ enabled = true
 
 [vars]
 # https://www.opendota.com/players/{STEAM32}/
-STEAM32 = ""
+STEAM32_LIST = '["239656038","898754153"]'
 
 [triggers]
 crons = ["*/30 * * * *"]

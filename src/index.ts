@@ -1,18 +1,44 @@
+interface Match {
+	match_id: number;
+	player_slot: number;
+	radiant_win: boolean;
+	duration: number;
+	game_mode: number;
+	lobby_type: number;
+	hero_id: number;
+	start_time: number;
+	version: number;
+	kills: number;
+	deaths: number;
+	assists: number;
+	average_rank: number;
+	leaver_status: number;
+	party_size: number;
+	hero_variant: number;
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		return new Response('Please view https://dash.cloudflare.com/ Workers & Pages => opendota-auto-parser => logs.');
 	},
 	async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext,) {
-		console.log('Scheduled event triggered');
-		const matchList = await getUnparsedMatches(env.STEAM32);
-		if (Array.isArray(matchList) && matchList.length > 0) {
-			ctx.waitUntil(requestParse(matchList));
-		}
+		const steam32List: string[] = JSON.parse(env.STEAM32_LIST);
+		steam32List.forEach(async steam32 => {
+			const matchList = await getUnparsedMatches(steam32);
+			if (Array.isArray(matchList) && matchList.length > 0) {
+				console.log(`For ${steam32}, the following unparsed matches have been found.\n ${matchList}`);
+				ctx.waitUntil(requestParse(matchList));
+			} else{
+				console.log(`No unparsed matches found for ${steam32}`);
+			}
+		});
+		console.log(`All tasks are completed.`)
 	},
 } satisfies ExportedHandler<Env>;
 
 async function getUnparsedMatches(steamId32: string) {
 	try {
+		console.log(`Fetching matches for ${steamId32}`);
 		// recent 10 matches
 		const url = `https://api.opendota.com/api/players/${steamId32}/matches?limit=10`
 		const response = await fetch(url, {
@@ -21,18 +47,17 @@ async function getUnparsedMatches(steamId32: string) {
 				'User-Agent': 'opendota-auto-parser'
 			}
 		});
-		const data = await response.json();
-
-		if (Array.isArray(data) && data.length > 0) {
-			const match_list: Array<number> = [];
-			data.forEach(match => {
-				if (match.version === null) {
-					match_list.push(match.match_id as number);
-				}
-			});
-			console.log(`find unparsed match: ${JSON.stringify(match_list)}`);
-			return match_list;
+		if (!response.ok) {
+			console.error(`HTTP error! status: ${response.status}`);
 		}
+		const data: Array<Match> = await response.json();
+		const match_list: Array<number> = [];
+		data.forEach(match => {
+			if (match.version === null) {
+				match_list.push(match.match_id as number);
+			}
+		});
+		return match_list;
 	} catch (error) {
 		console.error('error when fetching data:', error);
 		return error;
