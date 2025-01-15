@@ -10,6 +10,7 @@ Get you STEAM32 ID and [Add to environment variable](https://developers.cloudfla
 git clone https://github.com/duzhuoshanwai/opendota-auto-parser
 cd opendota-auto-parser
 yarn install
+# must generate worker-configuration.d.ts file every time after edit `STEAM32_LIST`
 yarn run cf-typegen
 yarn deploy
 ```
